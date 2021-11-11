@@ -1,4 +1,5 @@
 # Ignora esto
 *.lst
 *.o
+*.sh
 main
