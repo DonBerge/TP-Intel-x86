@@ -1,0 +1,4 @@
+# Ignora esto
+*.lst
+*.o
+main
