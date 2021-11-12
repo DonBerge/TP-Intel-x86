@@ -5,5 +5,4 @@ El trabajo trata sobre la arquitectura **Intel x86**
 
 ## ¿Como compilar?
     nasm -felf32 main.asm
-    ld -m elf_i386 -s -o main main.o
-
+    gcc -m32 main.c main.o -o main

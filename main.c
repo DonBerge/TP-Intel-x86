@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "cdecl.h"
 
 /*
 free_slist: .word 0
@@ -37,6 +39,12 @@ ingrese_numero: .asciiz "Ingrese un numero: "
 .align 2
 
 */
+void* PRE_CDECL newnode(void *lista, void *extra) POST_CDECL;
+void PRE_CDECL delnode(void *node, void *extra) POST_CDECL;
+void PRE_CDECL doinlist(void *node, void (*func)(void *, void *), void *arg) POST_CDECL;
+void* PRE_CDECL next(void *node) POST_CDECL;
+void* PRE_CDECL prev(void *node) POST_CDECL;
+char* PRE_CDECL getNodeString(void* node) POST_CDECL;
 
 void *wclist = NULL;
 void *cclist = NULL;
@@ -57,20 +65,40 @@ const char *wclist_mensaje = "Categoria en curso: ";
 const char *no_se_vale = "Opcion no valida\n";
 const char *ingrese_palabra = "Ingrese una palabra: ";
 
+void newcatego()
+{
+    void *oldcclist = cclist;
+    cclist = newnode(cclist, NULL);
+    if (oldcclist == NULL)
+        wclist = cclist;
+}
+
+void nextcatego()
+{
+    wclist = next(wclist);
+}
+
+void prevcatego()
+{
+    wclist = prev(wclist);
+}
 char buffer[104];
 
-void newobject();
+char* getString()
+{
+    char* str = malloc(100);
+    strncpy(str, buffer, 99);
+    str[100]='\0';
+    return str;
+}
 
 int main()
 {
     int opcion = 0;
     while (opcion != 9)
     {
-        if (wclist)
-        {
-            puts(wclist_mensaje);
-            puts(wclist + 8);
-        }
+        printf("%p\n",wclist);
+        printf("%p\n",getNodeString(wclist));
         puts(menu_mensaje);
         scanf("%d", &opcion);
         if (opcion <= 0 || opcion >= 10)
@@ -85,10 +113,15 @@ int main()
         {
         case 1:
             puts(ingrese_palabra);
-            scanf("%s",buffer);
-            newobject();
+            scanf("%s", buffer);
+            newcatego();
             break;
-        
+        case 2:
+            nextcatego();
+            break;
+        case 3:
+            prevcatego();
+            break;
         default:
             break;
         }

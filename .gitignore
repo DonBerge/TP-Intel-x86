@@ -2,4 +2,5 @@
 *.lst
 *.o
 *.sh
+*.out
 main
