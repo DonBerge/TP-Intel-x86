@@ -40,7 +40,7 @@ ingrese_numero: .asciiz "Ingrese un numero: "
 
 */
 void* PRE_CDECL newnode(void *lista, void *extra) POST_CDECL;
-void PRE_CDECL delnode(void *node, void *extra) POST_CDECL;
+void* PRE_CDECL delnode(void *node) POST_CDECL;
 void PRE_CDECL doinlist(void *node, void (*func)(void *, void *), void *arg) POST_CDECL;
 void* PRE_CDECL next(void *node) POST_CDECL;
 void* PRE_CDECL prev(void *node) POST_CDECL;
@@ -82,6 +82,14 @@ void prevcatego()
 {
     wclist = prev(wclist);
 }
+
+void delcatego()
+{
+    void* p = delnode(wclist);
+    printf("%p %p\n",wclist, p);
+    wclist = p;
+}
+
 char buffer[104];
 
 char* getString()
@@ -122,6 +130,8 @@ int main()
         case 3:
             prevcatego();
             break;
+        case 5:
+            delcatego();
         default:
             break;
         }
