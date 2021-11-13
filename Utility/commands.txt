@@ -1,0 +1,13 @@
+   41  nasm -f elf32 asm_main.asm 
+   46  cp linux-ex/asm_io.inc .
+   47  nasm -f elf32 asm_main.asm 
+   78  sudo apt-get install gcc-multilib g++-multilib
+   80  cd linux-ex/
+   95  less asm_io.asm 
+   97  nasm -f elf32 -d ELF_TYPE asm_io.asm
+  101  mv asm_io.o ..
+  102  cd ..
+  103  gcc -m32 driver.c asm_main.o asm_io.o -o first
+  104  ./first 
+  105  gcc -m32 -Wno-implicit driver.c asm_main.o asm_io.o -o first
+  106  gcc -m32 -Wno-all driver.c asm_main.o asm_io.o -o first

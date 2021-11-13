@@ -39,7 +39,7 @@ ingrese_numero: .asciiz "Ingrese un numero: "
 .align 2
 
 */
-void* PRE_CDECL newnode(void *lista, void *extra) POST_CDECL;
+void* PRE_CDECL newnode(void **lista, void *extra) POST_CDECL;
 void* PRE_CDECL delnode(void *node) POST_CDECL;
 void PRE_CDECL doinlist(void *node, void (*func)(void *, void *), void *arg) POST_CDECL;
 void* PRE_CDECL next(void *node) POST_CDECL;
@@ -68,7 +68,8 @@ const char *ingrese_palabra = "Ingrese una palabra: ";
 void newcatego()
 {
     void *oldcclist = cclist;
-    cclist = newnode(cclist, NULL);
+    newnode(&cclist, NULL);
+    printf("cclist: %p",cclist);
     if (oldcclist == NULL)
         wclist = cclist;
 }
@@ -106,7 +107,6 @@ int main()
     while (opcion != 9)
     {
         printf("%p\n",wclist);
-        printf("%p\n",getNodeString(wclist));
         puts(menu_mensaje);
         scanf("%d", &opcion);
         if (opcion <= 0 || opcion >= 10)

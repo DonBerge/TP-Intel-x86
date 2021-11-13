@@ -1,3 +1,5 @@
+%include "asm_io.inc"
+
 section .rodata
 nullnode: db 16
 
@@ -19,60 +21,56 @@ extern malloc
 extern getString
 extern free
 
+; NO MODIFICAR EBX
+
+;   newnode(&primernodolist,val)
 newnode:
-    ; Llamo a la funcion smalloc para obtener un nuevo nodo y guardo lo que sea necesario en el stack
-    push edi
-    push esi
-    
-    sub esp, 8
+    enter 0,0
+    dump_regs 1
+    push ebp                ; Guardo el frame poiter
+    mov ebp, esp            ; frame pointer = stack pointer
+    push ebx                ; ebx TIENE que mantener su valor al final del programa
+    push dword 16           ; 16 bytes son necesarios para el nodo, dword es necesario porque push guarda solo palabras dobles
+    call malloc             ; malloc de C
+    pop ecx                 ; ecx contiene 16, asi sacamos el valor de la pila. eax debe contener el nuevo nodo
 
-    mov edi, 16
-    call malloc
-    
-    add esp, 8
+    dump_regs 2
+    ; TODO: guardar string
 
-    ;push eax
-    ;call getString
-    ;pop ecx
-    ;mov [ecx+8], eax
-    ;mov eax, ecx
-
-    pop esi
-    pop edi
-
-    ; eax = newnode
-    ; edi = lastnode
-    ;mov [eax+4], esi
-
-    ; if lastnode == null
-    test edi, 0
+    mov edx, [ebp+12]       ; edx = &primernodolist
+    mov edx, [edx]          ; edx = *edx = primernodolist
+    dump_regs 3
+    cmp edx, 0
     jz newnode_empty
-
-    ; if prev(lastnode) == lastnode
-    mov ecx, [edi]
-    cmp edi, ecx
-    je newnode_unique
-
-    newnode_not_empty:      ; slist != NULL and slist != elist (hay 2 o mas elementos)
-    mov ecx, [edi]          ; ecx = prev(lastnode)
-    mov [edi], eax          ; prev(lastnode) = newnode
-    mov [eax+12], edi       ; next(newnode) = lastnode
-    mov [ecx+12], eax       ; next(prev(lastnode)) = newnode
-    mov [eax], ecx          ; prev(newnode) = prev(lastnode)
-    mov eax, edi
-    ret
-
-    newnode_unique:
-    mov [edi], eax          ; prev(lastnode) = newnode
-    mov [edi+12], eax       ; next(lastnode) = newnode
-    mov [eax], edi          ; prev(newnode)  = lastnode
-    mov [eax+12], edi       ; next(newnode)  = lastnode
-    ret
+    
 
     newnode_empty:
-    mov [eax], eax          ; prev(newnode) = newnode
-    mov [eax+12], eax       ; next(newnode) = newnode
-    mov edi, eax
+    mov edx, eax            ; primernodolist = newnode
+    mov [edx], eax          ; prev(newnode) = newnode
+    mov [edx+12], eax            ; next(newnode) = newnode
+    jmp newnode_end
+
+    newnode_unique:         ; firstnode = primernodolist
+    mov [eax], edx          ; prev(newnode) = firstnode
+    mov [eax+12], edx       ; next(newnode) = firstnode
+    mov [edx], eax          ; prev(firstnode) = newnode
+    mov [edx+12], eax       ; next(firstnode) = newnode
+    jmp newnode_end
+
+    newnode_not_empty:
+    mov ecx, [edx]          ; ecx = prev(firstnode) = lastnode
+    mov [ecx+12], eax       ; next(lasnode) = newnode
+    mov [eax], ecx          ; prev(newnode) = lastnode
+    mov [eax+12], edx       ; next(newnode) = firstnode
+    mov [edx], eax          ; prev(fistnode) = lastnode
+    jmp newnode_end
+
+    newnode_end:
+    dump_regs 4
+    pop ebx
+    pop ebp
+    mov eax, edx
+    leave
     ret
 
 ; ITERADORES
