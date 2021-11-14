@@ -1,5 +1,8 @@
 {
     "cSpell.enableFiletypes": [
         "!c"
-    ]
+    ],
+    "files.associations": {
+        "stdio.h": "c"
+    }
 }

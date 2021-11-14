@@ -4,3 +4,6 @@
 *.sh
 *.out
 main
+
+# Excepto esto
+!run.sh

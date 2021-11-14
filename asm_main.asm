@@ -1,53 +1,59 @@
 %include "asm_io.inc"
 
+section .data
+cclist: dd 1 0
+wclist: dd 1 0
+buffer: db 104
+
 section .rodata
-nullnode: db 16
-
-msg db 'Hello, world!',0xa
-len equ $ - msg
-
-formatString db "%s"
-buffer db 100
+nullnode: dd 1 0
 
 section .text
-
+global asm_main
 global newnode
-global next
 global prev
-global getNodeString
+global next
 global delnode
 
 extern malloc
-extern getString
 extern free
 
-; NO MODIFICAR EBX
+asm_main:
+    enter 0,0
+    pusha
 
-;   newnode(&primernodolist,val)
+    dump_regs 1
+    
+    popa
+    leave
+    ret
+
 newnode:
     enter 0,0
-    dump_regs 1
     push ebp                ; Guardo el frame poiter
-    mov ebp, esp            ; frame pointer = stack pointer
-    push ebx                ; ebx TIENE que mantener su valor al final del programa
+    mov ebp, esp
+
     push dword 16           ; 16 bytes son necesarios para el nodo, dword es necesario porque push guarda solo palabras dobles
     call malloc             ; malloc de C
-    pop ecx                 ; ecx contiene 16, asi sacamos el valor de la pila. eax debe contener el nuevo nodo
-
-    dump_regs 2
-    ; TODO: guardar string
+    pop edx                ; Saco 16 del stack
 
     mov edx, [ebp+12]       ; edx = &primernodolist
     mov edx, [edx]          ; edx = *edx = primernodolist
-    dump_regs 3
-    cmp edx, 0
-    jz newnode_empty
+
+    dump_regs 1
+
+    cmp edx, 0              ; if(firstnode == NULL)
+    je newnode_empty        ;   sin nodos -> goto newnode_empty
     
+    cmp [edx], edx          ; else if(firstnode == prev(firstnode))
+    je newnode_unique       ;   un unico nodo -> goto newnode_unique
+
+    jmp newnode_not_empty   ; else 2 o mas nodos -> goto newnode_not_empty
 
     newnode_empty:
+    mov [eax], eax          ; prev(newnode) = newnode
+    mov [eax+12], eax       ; next(newnode) = newnode
     mov edx, eax            ; primernodolist = newnode
-    mov [edx], eax          ; prev(newnode) = newnode
-    mov [edx+12], eax            ; next(newnode) = newnode
     jmp newnode_end
 
     newnode_unique:         ; firstnode = primernodolist
@@ -66,28 +72,35 @@ newnode:
     jmp newnode_end
 
     newnode_end:
-    dump_regs 4
-    pop ebx
-    pop ebp
+    mov ecx, [ebp+12]       ; Actualizo el valor de node en la memoria
+    mov [ecx], edx
+
+    pop ebp                 ; Recupero el frame pointer
     mov eax, edx
     leave
     ret
 
 ; ITERADORES
 prev:
-    test edi, 0
-    jz prev_is_null
-    mov edi, [edi]
-    prev_is_null:
-    mov eax, edi
+    mov eax, [esp+4]        ; eax = node
+    
+    cmp eax, 0
+    je prev_end
+    
+    mov eax, [eax]          ; eax = *(node)
+
+    prev_end:
     ret
 
 next:
-    test edi, 0
-    jz next_is_null
-    mov edi, [edi+12]
-    next_is_null:
-    mov eax, edi
+    mov eax, [esp+4]
+
+    cmp eax, 0
+    je next_end
+
+    mov eax, [eax+12]
+    
+    next_end:
     ret
 
 delnode:
@@ -127,20 +140,4 @@ delnode:
     add esp, 8
     mov edi, 0
     mov eax, 0
-    ret
-
-; UTILITY
-getNodeString:                 ; Primer argumento, nodo
-    push edi
-    mov edi, [edi+8]
-    test edi, 0
-    jnz getNodeString_not_null_str
-
-    pop edi
-    mov eax, 0
-    ret
-
-    getNodeString_not_null_str:
-    mov eax, edi
-    pop edi
     ret
