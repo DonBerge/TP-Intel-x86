@@ -3,11 +3,16 @@
 #include <string.h>
 #include "cdecl.h"
 
-void* PRE_CDECL newnode(void **lista, void *extra) POST_CDECL;
-void* PRE_CDECL delnode(void *node) POST_CDECL;
+#define true 1
+#define false 0
+
+typedef unsigned char bool;
+
+void PRE_CDECL newnode(void **lista, void *extra) POST_CDECL;
+void PRE_CDECL delnode(void **node) POST_CDECL;
 void PRE_CDECL doinlist(void *node, void (*func)(void *, void *), void *arg) POST_CDECL;
-void* PRE_CDECL next(void *node) POST_CDECL;
-void* PRE_CDECL prev(void *node) POST_CDECL;
+void *PRE_CDECL next(void *node) POST_CDECL;
+void *PRE_CDECL prev(void *node) POST_CDECL;
 
 void *wclist = NULL;
 void *cclist = NULL;
@@ -48,18 +53,19 @@ void prevcatego()
 
 void delcatego()
 {
-    void* p = delnode(wclist);
-    printf("%p %p\n",wclist, p);
-    wclist = p;
+    bool cambiar_cclist = (wclist == cclist);
+    delnode(&wclist);
+    if(cambiar_cclist)
+        cclist = wclist;
 }
 
 char buffer[104];
 
-char* getString()
+char *getString()
 {
-    char* str = malloc(100);
+    char *str = malloc(100);
     strncpy(str, buffer, 99);
-    str[100]='\0';
+    str[100] = '\0';
     return str;
 }
 
@@ -68,9 +74,9 @@ int main()
     int opcion = 0;
     while (opcion != 9)
     {
-        printf("%p",prev(wclist));
-        printf(" %p ",wclist);
-        printf("%p\n",next(wclist));
+        printf("%p", prev(wclist));
+        printf(" %p ", wclist);
+        printf("%p\n", next(wclist));
         puts(menu_mensaje);
         scanf("%d", &opcion);
         if (opcion <= 0 || opcion >= 10)
@@ -89,10 +95,10 @@ int main()
             newcatego();
             break;
         case 2:
-            nextcatego();
+            wclist = prev(wclist);
             break;
         case 3:
-            prevcatego();
+            wclist = next(wclist);
             break;
         case 5:
             delcatego();

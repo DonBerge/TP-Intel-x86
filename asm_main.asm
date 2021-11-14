@@ -40,8 +40,6 @@ newnode:
     mov edx, [ebp+12]       ; edx = &primernodolist
     mov edx, [edx]          ; edx = *edx = primernodolist
 
-    dump_regs 1
-
     cmp edx, 0              ; if(firstnode == NULL)
     je newnode_empty        ;   sin nodos -> goto newnode_empty
     
@@ -103,41 +101,40 @@ next:
     next_end:
     ret
 
-delnode:
-    test edi, 0             ; delnode(NULL) no hace nada
-    jnz delnode_not_null
-    mov eax, edi
-    ret
+delnode:                    ; node = nodo a borrar
+    mov eax, [esp+4]        ; &node
+    mov eax, [eax]          ; *(&node) = node
+    cmp eax, 0              ; delnode(null) no hace nada
+    je delnode_end
 
-    delnode_not_null:
-    mov ecx, [edi]          ; ecx = prev(node)
-    mov edx, [edi+12]       ; edx = next(node)
+    mov edx, [eax]          ; prev(node)
+    mov ecx, [eax+12]       ; next(node)
 
-    cmp ecx, edx            ; if(ecx == edx) hay solo un nodo
-    je delnode_unique
     
-    mov [ecx+12], edx       ; next(prev(node)) = next(node)
-    mov [edx], ecx          ; prev(next(node)) = prev(node)
-    
-    push ecx
+
     push edx
-    sub esp, 8
-
+    push ecx
+    push eax
     call free
-    
-    add esp, 8
-    pop edx
+    pop eax
     pop ecx
+    pop edx
 
-    mov edi, edx
-    mov eax, edx
-
-    ret
+    cmp eax, ecx            ; if(node == next(node))
+    je delnode_unique       ;   hay un solo nodo -> delnode_unique
+    jmp delnode_not_null    ;   hay 2 o mas nodos -> delnode_not_null
 
     delnode_unique:
-    sub esp, 8
-    call free
-    add esp, 8
-    mov edi, 0
     mov eax, 0
+    jmp delnode_end
+
+    delnode_not_null:
+    mov [ecx], edx          ; prev(next(node) = prev(node)
+    mov [edx+12], ecx       ; next(prev(node) = next(node)
+    mov eax, ecx            ; node se remplaza por next(node)
+    jmp delnode_end
+
+    delnode_end:
+    mov ecx, [esp+4]
+    mov [ecx], eax
     ret
