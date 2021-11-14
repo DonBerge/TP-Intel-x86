@@ -4,5 +4,4 @@ Trabajo práctico de la materia Instalación y Remplazo de componentes internos 
 El trabajo trata sobre la arquitectura **Intel x86**
 
 ## ¿Como compilar?
-    nasm -felf32 main.asm
-    gcc -m32 main.c main.o -o main
+    sh run.sh

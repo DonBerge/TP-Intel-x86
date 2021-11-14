@@ -9,24 +9,15 @@ section .rodata
 nullnode: dd 1 0
 
 section .text
-global asm_main
 global newnode
 global prev
 global next
 global delnode
+global getNodeString
 
 extern malloc
 extern free
-
-asm_main:
-    enter 0,0
-    pusha
-
-    dump_regs 1
-    
-    popa
-    leave
-    ret
+extern getString
 
 newnode:
     enter 0,0
@@ -35,7 +26,18 @@ newnode:
 
     push dword 16           ; 16 bytes son necesarios para el nodo, dword es necesario porque push guarda solo palabras dobles
     call malloc             ; malloc de C
-    pop edx                ; Saco 16 del stack
+    pop edx                 ; Saco 16 del stack
+
+                            ; Meto un string en el nodo
+    push eax                ; Salvo el valor del nodo
+    call getString          ; Funcion definida en C, devuelve la dirección de un String
+    mov ecx, eax            ; Muevo el valor de retorno a otro registro
+    pop eax                 ; Recupero el nodo
+    mov [eax+8], ecx        ; Asigno la dirección del string
+
+                            ; Meto el valor adicional al nodo
+    mov edx, [ebp+8]        ; Segundo argumento de newnode, parametro a guardar en la segunda double word
+    mov [eax+4], edx        ; Guardo el valor en el nuevo nodo
 
     mov edx, [ebp+12]       ; edx = &primernodolist
     mov edx, [edx]          ; edx = *edx = primernodolist
@@ -108,21 +110,26 @@ delnode:                    ; node = nodo a borrar
     je delnode_end
 
     mov edx, [eax]          ; prev(node)
-    mov ecx, [eax+12]       ; next(node)
+    mov ecx, [eax+12]       ; next(node)    
 
-    
+                            ; Libero el string del nodo
+    pusha                   ; Salvo todos los registros
+    mov eax, [eax+8]        ; Obtengo direccion del string
+    push eax                ; Paso el parametro a la pila
+    call free               ; free de C
+    pop eax                 ; Libero el espacio del parametro
+    popa                    ; Recupero los registros
 
-    push edx
-    push ecx
-    push eax
+    push edx                ; Hay guardar los registros edx, ecx 
+    push ecx                
+    push eax                ; eax contiene el nodo a borrar, se pasa el parametro por el stack
     call free
     pop eax
     pop ecx
     pop edx
 
     cmp eax, ecx            ; if(node == next(node))
-    je delnode_unique       ;   hay un solo nodo -> delnode_unique
-    jmp delnode_not_null    ;   hay 2 o mas nodos -> delnode_not_null
+    jne delnode_not_null    ;   hay 2 o mas nodos -> delnode_not_null
 
     delnode_unique:
     mov eax, 0
@@ -132,9 +139,17 @@ delnode:                    ; node = nodo a borrar
     mov [ecx], edx          ; prev(next(node) = prev(node)
     mov [edx+12], ecx       ; next(prev(node) = next(node)
     mov eax, ecx            ; node se remplaza por next(node)
-    jmp delnode_end
 
     delnode_end:
     mov ecx, [esp+4]
     mov [ecx], eax
+    ret
+
+; UTILITY
+getNodeString:
+    mov eax, [esp+4]
+    cmp eax, 0
+    je getNodeString_end
+    mov eax, [eax+8]
+    getNodeString_end:
     ret

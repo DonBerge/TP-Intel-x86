@@ -13,6 +13,7 @@ void PRE_CDECL delnode(void **node) POST_CDECL;
 void PRE_CDECL doinlist(void *node, void (*func)(void *, void *), void *arg) POST_CDECL;
 void *PRE_CDECL next(void *node) POST_CDECL;
 void *PRE_CDECL prev(void *node) POST_CDECL;
+char *PRE_CDECL getNodeString(void *node) POST_CDECL;
 
 void *wclist = NULL;
 void *cclist = NULL;
@@ -27,11 +28,20 @@ const char *menu_mensaje =
     "7) Borrar un objeto de la categoria seleccionada\n"
     "8) Mostrar todos los objetos de la categoria seleccionada\n"
     "9) Salir\n"
-    "Seleccione una opcion por su numero: \n";
+    "Seleccione una opcion por su numero: ";
 
 const char *wclist_mensaje = "Categoria en curso: ";
 const char *no_se_vale = "Opcion no valida\n";
 const char *ingrese_palabra = "Ingrese una palabra: ";
+
+void clrscr()
+{
+    #ifdef __linux__
+        system("clear");
+    #else
+        system("cls");
+    #endif
+}
 
 void newcatego()
 {
@@ -71,13 +81,14 @@ char *getString()
 
 int main()
 {
+    clrscr();
     int opcion = 0;
-    while (opcion != 9)
+    while (1)
     {
-        printf("%p", prev(wclist));
-        printf(" %p ", wclist);
-        printf("%p\n", next(wclist));
-        puts(menu_mensaje);
+        char* str = getNodeString(wclist);
+        if(str)
+            printf("%s%s\n",wclist_mensaje,str);
+        printf("%s",menu_mensaje);
         scanf("%d", &opcion);
         if (opcion <= 0 || opcion >= 10)
         {
@@ -90,7 +101,7 @@ int main()
         switch (opcion)
         {
         case 1:
-            puts(ingrese_palabra);
+            printf("%s",ingrese_palabra);
             scanf("%s", buffer);
             newcatego();
             break;
@@ -105,6 +116,8 @@ int main()
         default:
             break;
         }
+        clrscr();
     }
+    clrscr();
     return 0;
 }
