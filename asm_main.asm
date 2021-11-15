@@ -13,12 +13,37 @@ global newnode
 global prev
 global next
 global delnode
+global getLongitud
 global getNodeString
+global doinlist
 
 extern malloc
 extern free
 extern getString
 
+; ITERADORES
+prev:
+    mov eax, [esp+4]        ; eax = node
+    
+    cmp eax, 0
+    je prev_end
+    
+    mov eax, [eax]          ; eax = *(node)
+
+    prev_end:
+    ret
+
+next:
+    mov eax, [esp+4]
+
+    cmp eax, 0
+    je next_end
+
+    mov eax, [eax+12]
+    
+    next_end:
+    ret
+; NODOS
 newnode:
     enter 0,0
     push ebp                ; Guardo el frame poiter
@@ -80,29 +105,6 @@ newnode:
     leave
     ret
 
-; ITERADORES
-prev:
-    mov eax, [esp+4]        ; eax = node
-    
-    cmp eax, 0
-    je prev_end
-    
-    mov eax, [eax]          ; eax = *(node)
-
-    prev_end:
-    ret
-
-next:
-    mov eax, [esp+4]
-
-    cmp eax, 0
-    je next_end
-
-    mov eax, [eax+12]
-    
-    next_end:
-    ret
-
 delnode:                    ; node = nodo a borrar
     mov eax, [esp+4]        ; &node
     mov eax, [eax]          ; *(&node) = node
@@ -152,4 +154,76 @@ getNodeString:
     je getNodeString_end
     mov eax, [eax+8]
     getNodeString_end:
+    ret
+getNodeVal:
+    mov eax, [esp+4]
+    cmp eax, 0
+    je getNodeVal_end
+    mov eax, [eax+4]
+    getNodeVal_end:
+    ret
+
+getLongitud:                  ; Toma una lista y devuelve su longitud
+    mov edx, [esp+4]
+    mov eax, edx
+    mov ecx, 0
+    
+    cmp edx, 0
+    jne getLongitud_loop
+    mov eax, ecx
+    ret
+
+    getLongitud_loop:
+    push edx
+    push ecx
+    push eax
+    call next
+    pop ecx
+    pop ecx
+    pop edx
+    
+    inc ecx
+    cmp edx, eax
+    jne getLongitud_loop
+    mov eax, ecx
+    ret
+
+; LISTAS
+doinlist:
+    push ebp                ; Guardo el frame pointer
+    mov ebp, esp            ; Remplazo el frame pointer por el stack pointer
+    
+    pusha                   ; Salvo todos los registros
+    mov eax, [ebp+16]       ; Consigo el primer nodo
+    
+    push eax                ; Parametro para getLongitud
+    call getLongitud        ; Consigo la longitud de la lista 
+    mov ecx, eax            ; El program counter ahora es la longitud de la lista
+    pop eax                 ; Saco el parametro del stack
+
+    cmp ecx, 0              ; Si la longitud es cero, la lista esta vacia
+    je doinlist_end         ; Salgo de la funcion
+
+    doinlist_loop:          ; Loop que recorre toda la lista
+    push ecx                ; Guardo el valor de ecx
+    push eax                ; nodo
+
+    mov eax, [ebp+8]        ; Consigo el valor extra
+    push eax                ; Lo meto en el stack
+    
+    mov eax, [ebp+12]       ; Consigo la funcion
+    
+    call eax                ; LLamo a la funcion
+    
+    pop eax                 ; Saco el valor extra del stack, queda el nodo solo
+    pop ecx                 ; Saco el nodo del stack y lo guardo en cualquier lado
+    pop ecx                 ; Recupero el program counter
+
+    mov eax, [eax+12]
+
+    loop doinlist_loop      ; Vuelve al loop
+    
+    doinlist_end:
+    popa                    ; Recupero todos los registros
+    pop ebp                 ; Recupero el frame pointer
     ret
