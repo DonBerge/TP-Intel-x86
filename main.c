@@ -17,6 +17,7 @@ void *PRE_CDECL prev(void *node) POST_CDECL;
 char *PRE_CDECL getNodeString(void *node) POST_CDECL;
 void *PRE_CDECL getNodeVal(void *node) POST_CDECL;
 int PRE_CDECL getLongitud(void *node) POST_CDECL;
+void PRE_CDECL printNodeString(void* node, void* val) POST_CDECL;
 
 void *wclist = NULL;
 void *cclist = NULL;
@@ -129,6 +130,7 @@ int main()
             break;
         case 4:
             mostrarcategos();
+            break;
         case 5:
             delcatego();
         default:
