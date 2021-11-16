@@ -41,9 +41,20 @@ const char *ingrese_palabra = "Ingrese una palabra: ";
 void clrscr()
 {
 #ifdef __linux__
-    //system("clear");
+    system("clear");
 #else
     system("cls");
+#endif
+}
+
+void pause()
+{
+#ifdef __linux__
+    printf("Presione una tecla para continuar");
+    getchar();
+    getchar();
+#else
+    system("pause");
 #endif
 }
 
@@ -68,6 +79,7 @@ void prevcatego()
 void mostrarcategos()
 {
     doinlist(cclist,printNodeString,wclist);
+    pause();
 }
 
 void delcatego()
@@ -78,12 +90,14 @@ void delcatego()
         cclist = wclist;
 }
 
-void printNodeString(void* node, void* val)
-{
-    if(node==val)
-        printf("*");
-    printf("%s\n",getNodeString(node));
-}
+//void doinlist(void *node, void (*func)(void *, void *), void *arg)
+//{
+//    for(int i=getLongitud(node);i>0;i--)
+//    {
+//        func(node,arg);
+//        node = next(node);
+//    }
+//}
 
 char buffer[104];
 
@@ -93,6 +107,28 @@ char *getString()
     strncpy(str, buffer, 99);
     str[100] = '\0';
     return str;
+}
+
+void newobjeto()
+{
+    void* objeto_list = getNodeVal(wclist);
+    return;
+    int* objeto_id;
+    objeto_id = malloc(sizeof(int));
+    *objeto_id=getLongitud(objeto_list)+1;
+    newnode(&objeto_list, objeto_id);
+}
+
+void delobjeto()
+{
+
+}
+
+void mostrarobjetos()
+{
+    void* objeto_list = getNodeVal(wclist);
+    doinlist(objeto_list,printNodeString,cclist);
+    pause();
 }
 
 int main()
@@ -133,6 +169,15 @@ int main()
             break;
         case 5:
             delcatego();
+        case 6:
+            printf("%s", ingrese_palabra);
+            scanf("%s", buffer);
+            newobjeto();
+            break;
+        case 7:
+            delobjeto();
+        case 8:
+            mostrarobjetos();
         default:
             break;
         }

@@ -3,6 +3,9 @@
 ASM_MAIN='asm_main'
 C_MAIN='main'
 
+# Limpia la pantalla
+clear
+
 #Genera el archivo objeto de asm_io
 nasm -felf32 -d ELF_TYPE asm_io.asm
 

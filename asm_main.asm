@@ -6,6 +6,7 @@ wclist: dd 1 0
 buffer: db 104
 
 section .rodata
+un_asterisco_solitario:  db "*"
 nullnode: dd 1 0
 
 section .text
@@ -15,7 +16,9 @@ global next
 global delnode
 global getLongitud
 global getNodeString
+global getNodeVal
 global doinlist
+global printNodeString
 
 extern malloc
 extern free
@@ -114,6 +117,8 @@ delnode:                    ; node = nodo a borrar
     mov edx, [eax]          ; prev(node)
     mov ecx, [eax+12]       ; next(node)    
 
+                            ; Libero lo que contenga el valor del nodo
+
                             ; Libero el string del nodo
     pusha                   ; Salvo todos los registros
     mov eax, [eax+8]        ; Obtengo direccion del string
@@ -169,27 +174,43 @@ getLongitud:                  ; Toma una lista y devuelve su longitud
     mov ecx, 0
     
     cmp edx, 0
-    jne getLongitud_loop
+    je getLongitud_end
+
+    getLongitud_loop:
+    mov eax, [eax+12]           ; node = next(node)
+    inc ecx                     ; ecx++
+    cmp edx, eax                ; if(firstnode != node)
+    jne getLongitud_loop        ;   no llegue al final
+
+    getLongitud_end:
     mov eax, ecx
     ret
 
-    getLongitud_loop:
-    push edx
-    push ecx
-    push eax
-    call next
-    pop ecx
-    pop ecx
-    pop edx
+printNodeString:
+    push ebp
+    mov ebp, esp
+    pusha
     
-    inc ecx
-    cmp edx, eax
-    jne getLongitud_loop
-    mov eax, ecx
+    mov eax, [ebp+12]
+    cmp eax, [ebp+8]
+    jne printNodeString_este_no_es
+
+    mov eax, [un_asterisco_solitario]
+    call print_char
+
+    printNodeString_este_no_es:
+    mov eax, [ebp+8]
+    mov eax, [eax+8]
+    
+    call print_string
+    call print_nl
+
+    popa
+    pop ebp
     ret
 
 ; LISTAS
-doinlist:
+doinlist:                  ; NO FUNCIONA, NO AVANZA EL NODO NO SE PORQUE
     push ebp                ; Guardo el frame pointer
     mov ebp, esp            ; Remplazo el frame pointer por el stack pointer
     
@@ -205,7 +226,7 @@ doinlist:
     je doinlist_end         ; Salgo de la funcion
 
     doinlist_loop:          ; Loop que recorre toda la lista
-    push ecx                ; Guardo el valor de ecx
+    pusha
     push eax                ; nodo
 
     mov eax, [ebp+8]        ; Consigo el valor extra
@@ -215,13 +236,14 @@ doinlist:
     
     call eax                ; LLamo a la funcion
     
-    pop eax                 ; Saco el valor extra del stack, queda el nodo solo
-    pop ecx                 ; Saco el nodo del stack y lo guardo en cualquier lado
-    pop ecx                 ; Recupero el program counter
-
-    mov eax, [eax+12]
-
-    loop doinlist_loop      ; Vuelve al loop
+    pop eax                 ; Saco el valor extra del stack
+    pop eax                 ; Saco el nodo del stack
+    popa
+    
+    mov eax, [eax+12]       ; Siguiente nodo
+    dec ecx
+    cmp ecx, 0
+    jne doinlist_loop
     
     doinlist_end:
     popa                    ; Recupero todos los registros
