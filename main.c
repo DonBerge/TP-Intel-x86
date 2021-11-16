@@ -14,9 +14,10 @@ void PRE_CDECL doinlist(void *node, void (*func)(void *, void *), void *arg) POS
 void *PRE_CDECL next(void *node) POST_CDECL;
 void *PRE_CDECL prev(void *node) POST_CDECL;
 char *PRE_CDECL getNodeString(void *node) POST_CDECL;
-void *PRE_CDECL getNodeVal(void *node) POST_CDECL;
+void **PRE_CDECL getNodeVal(void *node) POST_CDECL;
 int PRE_CDECL getLongitud(void *node) POST_CDECL;
 void PRE_CDECL printNodeString(void* node, void* val) POST_CDECL;
+void PRE_CDECL printNodeId(void* node, void* val) POST_CDECL;
 
 void *wclist = NULL;
 void *cclist = NULL;
@@ -37,6 +38,7 @@ const char *menu_mensaje =
 const char *wclist_mensaje = "Categoria en curso: ";
 const char *no_se_vale = "Opcion no valida\n";
 const char *ingrese_palabra = "Ingrese una palabra: ";
+const char *ingrese_numero = "Ingrese un numero: ";
 
 void clrscr()
 {
@@ -111,22 +113,39 @@ char *getString()
 
 void newobjeto()
 {
-    void* objeto_list = getNodeVal(wclist);
+    void** objeto_list = getNodeVal(wclist);
     int* objeto_id;
     objeto_id = malloc(sizeof(int));
-    *objeto_id=getLongitud(objeto_list)+1;
-    newnode(&objeto_list, objeto_id);
+    *objeto_id=getLongitud(*objeto_list)+1;
+    newnode(objeto_list, objeto_id);
 }
 
-void delobjeto()
+void delIfEqualId(void* node,void* dir_id)
 {
+    int id = *((int*)dir_id);
+    int int_val = **((int**)getNodeVal(node));
+    if(id == int_val)
+    {
+        printf("Borranding\n");
+	delnode(&node);
+    }
+}
 
+void actualizarId(void* node,void* dir_new_id)
+{
+    int** node_val_dir = (int**)getNodeVal(node);
+    **node_val_dir = *((int*)dir_new_id);
+    (*((int*)dir_new_id))++;
+}
+
+void delobjeto(int id)
+{
+    
 }
 
 void mostrarobjetos()
 {
-    void* objeto_list = getNodeVal(wclist);
-    printf("%d %p\n",getLongitud(objeto_list),objeto_list);
+    void* objeto_list = *getNodeVal(wclist);
     doinlist(objeto_list,printNodeString,cclist);
     pause();
 }
@@ -136,10 +155,9 @@ int main()
     NULLNODE = calloc(16,1);
     clrscr();
     int opcion = 0;
+     
     while (1)
     {
-        printf("%p %p\n",NULLNODE,getNodeVal(wclist));
-        printf("Largo: %d\n",getLongitud(wclist));
         char *str = getNodeString(wclist);
         if (str)
             printf("%s%s\n", wclist_mensaje, str);
@@ -157,7 +175,7 @@ int main()
         {
         case 1:
             printf("%s", ingrese_palabra);
-            scanf("%s", buffer);
+            scanf(" %s", buffer);
             newcatego();
             break;
         case 2:
@@ -174,11 +192,14 @@ int main()
             break;
         case 6:
             printf("%s", ingrese_palabra);
-            scanf("%s", buffer);
+            scanf(" %s", buffer);
             newobjeto();
             break;
         case 7:
-            delobjeto();
+	    printf("%s", ingrese_numero);
+            scanf(" %d",&opcion);
+            getchar();
+            delobjeto(opcion);
             break;
         case 8:
             mostrarobjetos();

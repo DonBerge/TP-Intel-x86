@@ -1,13 +1,10 @@
 %include "asm_io.inc"
 
-section .data
-cclist: dd 1 0
-wclist: dd 1 0
+section .data¡
 buffer: db 104
 
 section .rodata
 un_asterisco_solitario:  db "*"
-nullnode: dd 1 0
 
 section .text
 global newnode
@@ -17,11 +14,12 @@ global delnode
 global getLongitud
 global getNodeString
 global getNodeVal
-global doinlist
+global printNodeId
 global printNodeString
 
 extern malloc
 extern free
+extern doinlist
 extern getString
 
 ; ITERADORES
@@ -164,7 +162,7 @@ getNodeVal:
     mov eax, [esp+4]
     cmp eax, 0
     je getNodeVal_end
-    mov eax, [eax+4]
+    add eax, 4
     getNodeVal_end:
     ret
 
@@ -205,6 +203,20 @@ printNodeString:
     call print_string
     call print_nl
 
+    popa
+    pop ebp
+    ret
+
+printNodeId:
+    push ebp
+    mov ebp, esp
+    pusha
+    mov eax, [ebp+8]
+    mov eax, [eax+4]
+    mov eax, [eax]
+    dump_regs 1
+    call print_int
+    call print_nl
     popa
     pop ebp
     ret
