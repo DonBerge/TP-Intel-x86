@@ -54,7 +54,7 @@ newnode:
 
     push dword 16           ; 16 bytes son necesarios para el nodo, dword es necesario porque push guarda solo palabras dobles
     call malloc             ; malloc de C
-    pop edx                 ; Saco 16 del stack
+    add esp, 4              ; Saco 16 del stack
 
                             ; Meto un string en el nodo
     push eax                ; Salvo el valor del nodo
@@ -210,42 +210,42 @@ printNodeString:
     ret
 
 ; LISTAS
-doinlist:                  ; NO FUNCIONA, NO AVANZA EL NODO NO SE PORQUE
-    push ebp                ; Guardo el frame pointer
-    mov ebp, esp            ; Remplazo el frame pointer por el stack pointer
-    
-    pusha                   ; Salvo todos los registros
-    mov eax, [ebp+16]       ; Consigo el primer nodo
-    
-    push eax                ; Parametro para getLongitud
-    call getLongitud        ; Consigo la longitud de la lista 
-    mov ecx, eax            ; El program counter ahora es la longitud de la lista
-    pop eax                 ; Saco el parametro del stack
-
-    cmp ecx, 0              ; Si la longitud es cero, la lista esta vacia
-    je doinlist_end         ; Salgo de la funcion
-
-    doinlist_loop:          ; Loop que recorre toda la lista
-    pusha
-    push eax                ; nodo
-
-    mov eax, [ebp+8]        ; Consigo el valor extra
-    push eax                ; Lo meto en el stack
-    
-    mov eax, [ebp+12]       ; Consigo la funcion
-    
-    call eax                ; LLamo a la funcion
-    
-    pop eax                 ; Saco el valor extra del stack
-    pop eax                 ; Saco el nodo del stack
-    popa
-    
-    mov eax, [eax+12]       ; Siguiente nodo
-    dec ecx
-    cmp ecx, 0
-    jne doinlist_loop
-    
-    doinlist_end:
-    popa                    ; Recupero todos los registros
-    pop ebp                 ; Recupero el frame pointer
-    ret
+;doinlist:                  ; NO FUNCIONA, NO AVANZA EL NODO NO SE PORQUE
+;    push ebp                ; Guardo el frame pointer
+;    mov ebp, esp            ; Remplazo el frame pointer por el stack pointer
+;    
+;    pusha                   ; Salvo todos los registros
+;    mov eax, [ebp+16]       ; Consigo el primer nodo
+;    
+;    push eax                ; Parametro para getLongitud
+;    call getLongitud        ; Consigo la longitud de la lista 
+;    mov ecx, eax            ; El program counter ahora es la longitud de la lista
+;    pop eax                 ; Saco el parametro del stack
+;
+;    cmp ecx, 0              ; Si la longitud es cero, la lista esta vacia
+;    je doinlist_end         ; Salgo de la funcion
+;
+;    doinlist_loop:          ; Loop que recorre toda la lista
+;    pusha
+;    push eax                ; nodo
+;
+;    mov eax, [ebp+8]        ; Consigo el valor extra
+;    push eax                ; Lo meto en el stack
+;    
+;    mov eax, [ebp+12]       ; Consigo la funcion
+;    
+;    call eax                ; LLamo a la funcion
+;    
+;    pop eax                 ; Saco el valor extra del stack
+;    pop eax                 ; Saco el nodo del stack
+;    popa
+;    
+;    mov eax, [eax+12]       ; Siguiente nodo
+;    dec ecx
+;    cmp ecx, 0
+;    jne doinlist_loop
+;    
+;    doinlist_end:
+;    popa                    ; Recupero todos los registros
+;    pop ebp                 ; Recupero el frame pointer
+;    ret

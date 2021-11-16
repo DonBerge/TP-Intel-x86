@@ -8,7 +8,6 @@
 
 typedef unsigned char bool;
 
-void printNodeString(void* node, void* val);
 void PRE_CDECL newnode(void **lista, void *extra) POST_CDECL;
 void PRE_CDECL delnode(void **node) POST_CDECL;
 void PRE_CDECL doinlist(void *node, void (*func)(void *, void *), void *arg) POST_CDECL;
@@ -90,14 +89,14 @@ void delcatego()
         cclist = wclist;
 }
 
-//void doinlist(void *node, void (*func)(void *, void *), void *arg)
-//{
-//    for(int i=getLongitud(node);i>0;i--)
-//    {
-//        func(node,arg);
-//        node = next(node);
-//    }
-//}
+void doinlist(void *node, void (*func)(void *, void *), void *arg)
+{
+    for(int i=getLongitud(node);i>0;i--)
+    {
+        func(node,arg);
+        node = next(node);
+    }
+}
 
 char buffer[104];
 
