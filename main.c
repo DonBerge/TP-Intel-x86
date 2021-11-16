@@ -20,6 +20,7 @@ void PRE_CDECL printNodeString(void* node, void* val) POST_CDECL;
 
 void *wclist = NULL;
 void *cclist = NULL;
+void *NULLNODE;
 
 const char *menu_mensaje =
     "1) Crear una nueva categoria\n"
@@ -111,7 +112,6 @@ char *getString()
 void newobjeto()
 {
     void* objeto_list = getNodeVal(wclist);
-    return;
     int* objeto_id;
     objeto_id = malloc(sizeof(int));
     *objeto_id=getLongitud(objeto_list)+1;
@@ -126,16 +126,19 @@ void delobjeto()
 void mostrarobjetos()
 {
     void* objeto_list = getNodeVal(wclist);
+    printf("%d %p\n",getLongitud(objeto_list),objeto_list);
     doinlist(objeto_list,printNodeString,cclist);
     pause();
 }
 
 int main()
 {
+    NULLNODE = calloc(16,1);
     clrscr();
     int opcion = 0;
     while (1)
     {
+        printf("%p %p\n",NULLNODE,getNodeVal(wclist));
         printf("Largo: %d\n",getLongitud(wclist));
         char *str = getNodeString(wclist);
         if (str)
@@ -168,6 +171,7 @@ int main()
             break;
         case 5:
             delcatego();
+            break;
         case 6:
             printf("%s", ingrese_palabra);
             scanf("%s", buffer);
@@ -175,6 +179,7 @@ int main()
             break;
         case 7:
             delobjeto();
+            break;
         case 8:
             mostrarobjetos();
         default:

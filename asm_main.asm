@@ -64,7 +64,7 @@ newnode:
     mov [eax+8], ecx        ; Asigno la dirección del string
 
                             ; Meto el valor adicional al nodo
-    mov edx, [ebp+8]        ; Segundo argumento de newnode, parametro a guardar en la segunda double word
+    mov edx, [ebp+16]       ; Segundo argumento de newnode, parametro a guardar en la segunda double word
     mov [eax+4], edx        ; Guardo el valor en el nuevo nodo
 
     mov edx, [ebp+12]       ; edx = &primernodolist
