@@ -46,6 +46,7 @@ const string wclist_mensaje = "Categoria en curso: ";
 const string no_se_vale = "Opcion no valida\n";
 const string ingrese_palabra = "Ingrese una palabra: ";
 const string ingrese_numero = "Ingrese un numero: ";
+const string sin_catego = "Antes tiene que crear una categoria";
 
 void clrscr()
 {
@@ -91,9 +92,16 @@ void mostrarcategos()
     pause();
 }
 
+void delnodeparaquefuncionecondoinlist(node* _node, any val)
+{
+    delnode(_node);
+}
+
 void delcatego()
 {
     bool cambiar_cclist = (wclist == cclist);
+    list* objeto_list = getNodeVal(wclist);
+    doinlist(objeto_list,delnodeparaquefuncionecondoinlist,NULL);
     delnode(&wclist);
     if (cambiar_cclist)
         cclist = wclist;
@@ -109,8 +117,9 @@ void doinlist(list* lista, void (*func)(node*, any), any arg)
     node _node = *lista;
     for (int i = getLongitud(*lista); i > 0; i--)
     {
+        node sig_node = next(_node);
         func(&_node, arg);
-        _node = next(_node);
+        _node = sig_node;
     }
 }
 
@@ -120,6 +129,13 @@ void delnodeById(node* _node, any val)
     int node_id = getNodeId(*_node);
     if(find_id == node_id)
         delnode(_node);
+}
+
+void updateNodeId(node* _node, any val)
+{
+    int find_id = *((int*)val);
+    **((int**)getNodeVal(*_node)) = find_id;
+    *((int*)val) = find_id+1; 
 }
 
 
@@ -145,7 +161,9 @@ void newobjeto()
 void delobjeto(int id)
 {
     list* objeto_list = getNodeVal(wclist);
-    doinlist(objeto_list,delnodeById,NULL);
+    doinlist(objeto_list,delnodeById,&id);
+    id = 1;
+    doinlist(objeto_list,updateNodeId,&id);
 }
 
 void mostrarobjetos()
@@ -172,15 +190,27 @@ int main()
         string str = getNodeString(wclist);
         if (str)
             printf("%s%s\n", wclist_mensaje, str);
+        else
+            printf("No hay categorias\n");
         printf("%s", menu_mensaje);
         scanf("%d", &opcion);
         if (opcion <= 0 || opcion >= 10)
         {
             puts(no_se_vale);
+            pause();
+            clrscr();
             continue;
         }
         if (opcion == 9)
             break;
+
+        if(wclist==NULL && (opcion!=1))
+        {
+            puts(sin_catego);
+            pause();
+            clrscr();
+            continue;
+        }
 
         switch (opcion)
         {

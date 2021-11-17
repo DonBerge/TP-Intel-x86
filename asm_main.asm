@@ -1,6 +1,6 @@
 %include "asm_io.inc"
 
-section .data¡
+section .data
 buffer: db 104
 
 section .rodata
@@ -108,33 +108,41 @@ newnode:
     ret
 
 delnode:                    ; node = nodo a borrar
-    mov eax, [esp+4]        ; &node
+    push ebp
+    mov ebp, esp
+    pusha
+    mov eax, [ebp+8]        ; &node
     mov eax, [eax]          ; *(&node) = node
-    cmp eax, 0              ; delnode(null) no hace nada
+    cmp eax, dword 0        ; delnode(null) no hace nada
     je delnode_end
 
     mov edx, [eax]          ; prev(node)
     mov ecx, [eax+12]       ; next(node)    
 
                             ; Libero lo que contenga el valor del nodo
+    pusha
+    mov eax, [eax+4]
+    push eax
+    call secure_free
+    add esp, 4
+    popa
+
 
                             ; Libero el string del nodo
     pusha                   ; Salvo todos los registros
     mov eax, [eax+8]        ; Obtengo direccion del string
     push eax                ; Paso el parametro a la pila
-    call free               ; free de C
+    call secure_free        ; Llamo a secure_free
     pop eax                 ; Libero el espacio del parametro
     popa                    ; Recupero los registros
 
-    push edx                ; Hay guardar los registros edx, ecx 
-    push ecx                
+    pusha
     push eax                ; eax contiene el nodo a borrar, se pasa el parametro por el stack
-    call free
+    call secure_free
     pop eax
-    pop ecx
-    pop edx
+    popa
 
-    cmp eax, ecx            ; if(node == next(node))
+    cmp eax, ecx            ; if(node != next(node))
     jne delnode_not_null    ;   hay 2 o mas nodos -> delnode_not_null
 
     delnode_unique:
@@ -147,8 +155,10 @@ delnode:                    ; node = nodo a borrar
     mov eax, ecx            ; node se remplaza por next(node)
 
     delnode_end:
-    mov ecx, [esp+4]
-    mov [ecx], eax
+    mov edx, [ebp+8]
+    mov [edx], eax
+    popa
+    pop ebp
     ret
 
 ; UTILITY
@@ -197,4 +207,16 @@ printNodeId:
     call print_nl
     popa
     pop ebp
+    ret
+
+secure_free:
+    mov eax, [esp+4]
+    cmp eax, dword 0
+    je secure_free_end
+
+    push eax
+    ;call free
+    pop eax
+
+    secure_free_end:
     ret
