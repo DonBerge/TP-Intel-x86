@@ -27,8 +27,11 @@ int PRE_CDECL getLongitud(list lista) POST_CDECL;
 void PRE_CDECL printNodeString(node* _node, any val) POST_CDECL;
 void PRE_CDECL printNodeId(node _node,any val) POST_CDECL;
 void* PRE_CDECL findby(node _node,any val) POST_CDECL;
+
 list wclist = NULL;
 list cclist = NULL;
+
+char buffer[104];
 
 const string menu_mensaje =
     "1) Crear una nueva categoria\n"
@@ -92,7 +95,7 @@ void mostrarcategos()
     pause();
 }
 
-void delnodeparaquefuncionecondoinlist(node* _node, any val)
+void delnodeparaquefuncionecondoinlist(node* _node, any val) // Sirve para eliminar una lista: ejemplo doinlist(&list,delnodeparaque*,NULL);
 {
     delnode(_node);
 }
@@ -101,15 +104,15 @@ void delcatego()
 {
     bool cambiar_cclist = (wclist == cclist);
     list* objeto_list = getNodeVal(wclist);
-    doinlist(objeto_list,delnodeparaquefuncionecondoinlist,NULL);
-    delnode(&wclist);
+    doinlist(objeto_list,delnodeparaquefuncionecondoinlist,NULL);   // Borra toda la lista de objetos
+    delnode(&wclist);                                               // Borra el nodo actual
     if (cambiar_cclist)
         cclist = wclist;
 }
 
 int getNodeId(node _node)
 {
-    return **((int**)getNodeVal(_node));
+    return **((int**)getNodeVal(_node));                            // Atajo rapido para sacar el id de un nodo objeto
 }
 
 void doinlist(list* lista, void (*func)(node*, any), any arg)
@@ -138,9 +141,6 @@ void updateNodeId(node* _node, any val)
     *((int*)val) = find_id+1; 
 }
 
-
-char buffer[104];
-
 string getString()
 {
     string str = malloc(100);
@@ -161,7 +161,10 @@ void newobjeto()
 void delobjeto(int id)
 {
     list* objeto_list = getNodeVal(wclist);
-    doinlist(objeto_list,delnodeById,&id);
+    if(id==1)
+        delnode(objeto_list);
+    else
+        doinlist(objeto_list,delnodeById,&id);
     id = 1;
     doinlist(objeto_list,updateNodeId,&id);
 }
@@ -187,6 +190,9 @@ int main()
     int opcion = 0;
     while (1)
     {
+        // debug
+        //printf("%p %p %p\n",prev(wclist),wclist,next(wclist));
+        //printf("Direccion del string: %p\n",getNodeString(wclist));
         string str = getNodeString(wclist);
         if (str)
             printf("%s%s\n", wclist_mensaje, str);

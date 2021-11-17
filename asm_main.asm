@@ -1,11 +1,5 @@
 %include "asm_io.inc"
 
-section .data
-buffer: db 104
-
-section .rodata
-un_asterisco_solitario:  db "*"
-
 section .text
 global newnode
 global prev
@@ -14,9 +8,6 @@ global delnode
 global getLongitud
 global getNodeString
 global getNodeVal
-global printNodeId
-global printNodeString
-global findby
 
 extern malloc
 extern free
@@ -47,12 +38,20 @@ next:
     ret
 ; NODOS
 newnode:
+    ; &node +12
+    ; val   +08
+    ; ra    +04   
+    ; ebp   +00
     enter 0,0
     push ebp                ; Guardo el frame poiter
+    dump_stack 1, 4, 4
     mov ebp, esp
 
-    push dword 16           ; 16 bytes son necesarios para el nodo, dword es necesario porque push guarda solo palabras dobles
+
+    push 16                 ; 16 bytes son necesarios para el nodo, dword es necesario porque push guarda solo palabras dobles
     call malloc             ; malloc de C
+    ;test eax, eax          ; Si malloc tira error, salta a malloc_error
+    ;jz malloc_error
     add esp, 4              ; Saco 16 del stack
 
                             ; Meto un string en el nodo
@@ -68,6 +67,8 @@ newnode:
 
     mov edx, [ebp+12]       ; edx = &primernodolist
     mov edx, [edx]          ; edx = *edx = primernodolist
+
+    dump_regs 7
 
     cmp edx, 0              ; if(firstnode == NULL)
     je newnode_empty        ;   sin nodos -> goto newnode_empty
@@ -108,8 +109,12 @@ newnode:
     ret
 
 delnode:                    ; node = nodo a borrar
+    ; &node +08
+    ; ra    +04
+    ; ebp   +00
     push ebp
     mov ebp, esp
+    dump_stack 0,4,4
     pusha
     mov eax, [ebp+8]        ; &node
     mov eax, [eax]          ; *(&node) = node
@@ -129,12 +134,12 @@ delnode:                    ; node = nodo a borrar
 
 
                             ; Libero el string del nodo
-    pusha                   ; Salvo todos los registros
-    mov eax, [eax+8]        ; Obtengo direccion del string
-    push eax                ; Paso el parametro a la pila
-    call secure_free        ; Llamo a secure_free
-    pop eax                 ; Libero el espacio del parametro
-    popa                    ; Recupero los registros
+    ;pusha                   ; Salvo todos los registros
+    ;mov eax, [eax+8]        ; Obtengo direccion del string
+    ;push eax                ; Paso el parametro a la pila
+    ;call secure_free        ; Llamo a secure_free
+    ;pop eax                 ; Libero el espacio del parametro
+    ;popa                    ; Recupero los registros
 
     pusha
     push eax                ; eax contiene el nodo a borrar, se pasa el parametro por el stack
@@ -146,13 +151,15 @@ delnode:                    ; node = nodo a borrar
     jne delnode_not_null    ;   hay 2 o mas nodos -> delnode_not_null
 
     delnode_unique:
-    mov eax, 0
+    xor eax, eax
     jmp delnode_end
 
     delnode_not_null:
     mov [ecx], edx          ; prev(next(node) = prev(node)
     mov [edx+12], ecx       ; next(prev(node) = next(node)
     mov eax, ecx            ; node se remplaza por next(node)
+
+    delnode_erase:
 
     delnode_end:
     mov edx, [ebp+8]
@@ -169,6 +176,7 @@ getNodeString:
     mov eax, [eax+8]
     getNodeString_end:
     ret
+    
 getNodeVal:
     mov eax, [esp+4]
     cmp eax, 0
@@ -195,27 +203,13 @@ getLongitud:                  ; Toma una lista y devuelve su longitud
     mov eax, ecx
     ret
 
-printNodeId:
-    push ebp
-    mov ebp, esp
-    pusha
-    mov eax, [ebp+8]
-    mov eax, [eax+4]
-    mov eax, [eax]
-    dump_regs 1
-    call print_int
-    call print_nl
-    popa
-    pop ebp
-    ret
-
 secure_free:
     mov eax, [esp+4]
     cmp eax, dword 0
     je secure_free_end
 
     push eax
-    ;call free
+    call free
     pop eax
 
     secure_free_end:
