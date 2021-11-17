@@ -6,24 +6,31 @@
 #define true 1
 #define false 0
 
+typedef void *node;
+typedef void *any;
+typedef void *list;
+typedef char *string;
+
 typedef unsigned char bool;
 
-void PRE_CDECL newnode(void **lista, void *extra) POST_CDECL;
-void PRE_CDECL delnode(void **node) POST_CDECL;
-void PRE_CDECL doinlist(void *node, void (*func)(void *, void *), void *arg) POST_CDECL;
-void *PRE_CDECL next(void *node) POST_CDECL;
-void *PRE_CDECL prev(void *node) POST_CDECL;
-char *PRE_CDECL getNodeString(void *node) POST_CDECL;
-void **PRE_CDECL getNodeVal(void *node) POST_CDECL;
-int PRE_CDECL getLongitud(void *node) POST_CDECL;
-void PRE_CDECL printNodeString(void* node, void* val) POST_CDECL;
-void PRE_CDECL printNodeId(void* node, void* val) POST_CDECL;
+// node = | node | any | string | node |
+//       0      4     8       12     16
 
-void *wclist = NULL;
-void *cclist = NULL;
-void *NULLNODE;
+void PRE_CDECL newnode(list* lista, any extra) POST_CDECL;
+void PRE_CDECL delnode(node* node) POST_CDECL;
+void PRE_CDECL doinlist(list* lista, void (*func)(node*, any), any arg) POST_CDECL;
+node PRE_CDECL next(node _node) POST_CDECL;
+node PRE_CDECL prev(node _node) POST_CDECL;
+string PRE_CDECL getNodeString(node _node) POST_CDECL;
+any* PRE_CDECL getNodeVal(node _node) POST_CDECL;
+int PRE_CDECL getLongitud(list lista) POST_CDECL;
+void PRE_CDECL printNodeString(node* _node, any val) POST_CDECL;
+void PRE_CDECL printNodeId(node _node,any val) POST_CDECL;
+void* PRE_CDECL findby(node _node,any val) POST_CDECL;
+list wclist = NULL;
+list cclist = NULL;
 
-const char *menu_mensaje =
+const string menu_mensaje =
     "1) Crear una nueva categoria\n"
     "2) Pasar a la anterior categoria\n"
     "3) Pasar a la siguiente categoria\n"
@@ -35,10 +42,10 @@ const char *menu_mensaje =
     "9) Salir\n"
     "Seleccione una opcion por su numero: ";
 
-const char *wclist_mensaje = "Categoria en curso: ";
-const char *no_se_vale = "Opcion no valida\n";
-const char *ingrese_palabra = "Ingrese una palabra: ";
-const char *ingrese_numero = "Ingrese un numero: ";
+const string wclist_mensaje = "Categoria en curso: ";
+const string no_se_vale = "Opcion no valida\n";
+const string ingrese_palabra = "Ingrese una palabra: ";
+const string ingrese_numero = "Ingrese un numero: ";
 
 void clrscr()
 {
@@ -62,7 +69,7 @@ void pause()
 
 void newcatego()
 {
-    void *oldcclist = cclist;
+    list oldcclist = cclist;
     newnode(&cclist, NULL);
     if (oldcclist == NULL)
         wclist = cclist;
@@ -80,7 +87,7 @@ void prevcatego()
 
 void mostrarcategos()
 {
-    doinlist(cclist,printNodeString,wclist);
+    doinlist(&cclist, printNodeString, wclist);
     pause();
 }
 
@@ -92,20 +99,35 @@ void delcatego()
         cclist = wclist;
 }
 
-void doinlist(void *node, void (*func)(void *, void *), void *arg)
+int getNodeId(node _node)
 {
-    for(int i=getLongitud(node);i>0;i--)
+    return **((int**)getNodeVal(_node));
+}
+
+void doinlist(list* lista, void (*func)(node*, any), any arg)
+{
+    node _node = *lista;
+    for (int i = getLongitud(*lista); i > 0; i--)
     {
-        func(node,arg);
-        node = next(node);
+        func(&_node, arg);
+        _node = next(_node);
     }
 }
 
+void delnodeById(node* _node, any val)
+{
+    int find_id = *((int*)val);
+    int node_id = getNodeId(*_node);
+    if(find_id == node_id)
+        delnode(_node);
+}
+
+
 char buffer[104];
 
-char *getString()
+string getString()
 {
-    char *str = malloc(100);
+    string str = malloc(100);
     strncpy(str, buffer, 99);
     str[100] = '\0';
     return str;
@@ -113,52 +135,41 @@ char *getString()
 
 void newobjeto()
 {
-    void** objeto_list = getNodeVal(wclist);
-    int* objeto_id;
+    list* objeto_list = getNodeVal(wclist);
+    int *objeto_id;
     objeto_id = malloc(sizeof(int));
-    *objeto_id=getLongitud(*objeto_list)+1;
+    *objeto_id = getLongitud(*objeto_list) + 1;
     newnode(objeto_list, objeto_id);
-}
-
-void delIfEqualId(void* node,void* dir_id)
-{
-    int id = *((int*)dir_id);
-    int int_val = **((int**)getNodeVal(node));
-    if(id == int_val)
-    {
-        printf("Borranding\n");
-	delnode(&node);
-    }
-}
-
-void actualizarId(void* node,void* dir_new_id)
-{
-    int** node_val_dir = (int**)getNodeVal(node);
-    **node_val_dir = *((int*)dir_new_id);
-    (*((int*)dir_new_id))++;
 }
 
 void delobjeto(int id)
 {
-    
+    list* objeto_list = getNodeVal(wclist);
+    doinlist(objeto_list,delnodeById,NULL);
 }
 
 void mostrarobjetos()
 {
-    void* objeto_list = *getNodeVal(wclist);
-    doinlist(objeto_list,printNodeString,cclist);
+    list* objeto_list = getNodeVal(wclist);
+    doinlist(objeto_list, printNodeString, cclist);
     pause();
+}
+
+void printNodeString(node* _node,any val)
+{
+    string str = getNodeString(*_node);
+    if(*_node == val)
+        putchar('*');
+    puts(str);
 }
 
 int main()
 {
-    NULLNODE = calloc(16,1);
     clrscr();
     int opcion = 0;
-     
     while (1)
     {
-        char *str = getNodeString(wclist);
+        string str = getNodeString(wclist);
         if (str)
             printf("%s%s\n", wclist_mensaje, str);
         printf("%s", menu_mensaje);
@@ -196,8 +207,8 @@ int main()
             newobjeto();
             break;
         case 7:
-	    printf("%s", ingrese_numero);
-            scanf(" %d",&opcion);
+            printf("%s", ingrese_numero);
+            scanf(" %d", &opcion);
             getchar();
             delobjeto(opcion);
             break;

@@ -16,6 +16,7 @@ global getNodeString
 global getNodeVal
 global printNodeId
 global printNodeString
+global findby
 
 extern malloc
 extern free
@@ -184,29 +185,6 @@ getLongitud:                  ; Toma una lista y devuelve su longitud
     mov eax, ecx
     ret
 
-printNodeString:
-    push ebp
-    mov ebp, esp
-    pusha
-    
-    mov eax, [ebp+12]
-    cmp eax, [ebp+8]
-    jne printNodeString_este_no_es
-
-    mov eax, [un_asterisco_solitario]
-    call print_char
-
-    printNodeString_este_no_es:
-    mov eax, [ebp+8]
-    mov eax, [eax+8]
-    
-    call print_string
-    call print_nl
-
-    popa
-    pop ebp
-    ret
-
 printNodeId:
     push ebp
     mov ebp, esp
@@ -220,44 +198,3 @@ printNodeId:
     popa
     pop ebp
     ret
-
-; LISTAS
-;doinlist:                  ; NO FUNCIONA, NO AVANZA EL NODO NO SE PORQUE
-;    push ebp                ; Guardo el frame pointer
-;    mov ebp, esp            ; Remplazo el frame pointer por el stack pointer
-;    
-;    pusha                   ; Salvo todos los registros
-;    mov eax, [ebp+16]       ; Consigo el primer nodo
-;    
-;    push eax                ; Parametro para getLongitud
-;    call getLongitud        ; Consigo la longitud de la lista 
-;    mov ecx, eax            ; El program counter ahora es la longitud de la lista
-;    pop eax                 ; Saco el parametro del stack
-;
-;    cmp ecx, 0              ; Si la longitud es cero, la lista esta vacia
-;    je doinlist_end         ; Salgo de la funcion
-;
-;    doinlist_loop:          ; Loop que recorre toda la lista
-;    pusha
-;    push eax                ; nodo
-;
-;    mov eax, [ebp+8]        ; Consigo el valor extra
-;    push eax                ; Lo meto en el stack
-;    
-;    mov eax, [ebp+12]       ; Consigo la funcion
-;    
-;    call eax                ; LLamo a la funcion
-;    
-;    pop eax                 ; Saco el valor extra del stack
-;    pop eax                 ; Saco el nodo del stack
-;    popa
-;    
-;    mov eax, [eax+12]       ; Siguiente nodo
-;    dec ecx
-;    cmp ecx, 0
-;    jne doinlist_loop
-;    
-;    doinlist_end:
-;    popa                    ; Recupero todos los registros
-;    pop ebp                 ; Recupero el frame pointer
-;    ret
